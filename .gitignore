@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Database WAL/SHM files (only commit the main db if desired)
+monitor.db-shm
+monitor.db-wal
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Env / secrets
+.env
+*.env

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Machine Monitoring & Spare Parts</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="brand">
+      <h2>⚙️ MachineMonitor</h2>
+      <p>Real-time Monitoring System</p>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active" data-page="dashboard">📊 Dashboard</a></li>
+      <li><a href="machines.html" data-page="machines">🏭 Mesin</a></li>
+      <li><a href="spareparts.html" data-page="spareparts">🔧 Spare Parts</a></li>
+      <li><a href="graphs.html" data-page="graphs">📈 Grafik</a></li>
+      <li><a href="usage.html" data-page="usage">📋 Log Pemakaian</a></li>
+    </ul>
+    <div class="connection-status" id="connectionStatus">
+      <span class="dot"></span> Connecting...
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <header class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <div class="datetime" id="datetime"></div>
+    </header>
+
+    <!-- Dashboard Content -->
+    <section id="dashboardSection" class="content-section">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Mesin</h3>
+          <p class="stat-value" id="statMachines">-</p>
+        </div>
+        <div class="stat-card running">
+          <h3>Berjalan</h3>
+          <p class="stat-value" id="statRunning">-</p>
+        </div>
+        <div class="stat-card warning">
+          <h3>Warning</h3>
+          <p class="stat-value" id="statWarning">-</p>
+        </div>
+        <div class="stat-card stopped">
+          <h3>Stop/Maintenance</h3>
+          <p class="stat-value" id="statStopped">-</p>
+        </div>
+        <div class="stat-card">
+          <h3>Total Spare Parts</h3>
+          <p class="stat-value" id="statParts">-</p>
+        </div>
+        <div class="stat-card low">
+          <h3>Stock Menipis</h3>
+          <p class="stat-value" id="statLowStock">-</p>
+        </div>
+        <div class="stat-card">
+          <h3>Pemakaian Hari Ini</h3>
+          <p class="stat-value" id="statUsageToday">-</p>
+        </div>
+        <div class="stat-card">
+          <h3>Nilai Inventory</h3>
+          <p class="stat-value" id="statValue">-</p>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card">
+          <h3>Status Mesin</h3>
+          <div id="machineStatusList" class="machine-list"></div>
+        </div>
+        <div class="card">
+          <h3>Spare Parts Stock Menipis</h3>
+          <div id="lowStockList" class="low-stock-list"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Pemakaian Spare Parts (30 hari)</h3>
+        <canvas id="dashboardUsageChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Machines Content -->
+    <section id="machinesSection" class="content-section hidden">
+      <div class="card">
+        <h3>Monitoring Mesin Real-time</h3>
+        <div id="machineCards" class="machine-grid"></div>
+      </div>
+    </section>
+
+    <!-- Spare Parts Content -->
+    <section id="sparepartsSection" class="content-section hidden">
+      <div class="card">
+        <div class="card-header">
+          <h3>Stock Spare Parts</h3>
+          <button class="btn-primary" onclick="openAddPartModal()">+ Tambah Spare Part</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="partSearch" placeholder="Cari nama / part number..." oninput="filterParts()">
+          <select id="partCategoryFilter" onchange="filterParts()">
+            <option value="">Semua Kategori</option>
+          </select>
+          <select id="partStatusFilter" onchange="filterParts()">
+            <option value="">Semua Status</option>
+            <option value="low">Stock Menipis</option>
+            <option value="ok">Stock Normal</option>
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="partsTable">
+            <thead>
+              <tr>
+                <th>Part Number</th>
+                <th>Nama</th>
+                <th>Kategori</th>
+                <th>Stock</th>
+                <th>Min Stock</th>
+                <th>Unit</th>
+                <th>Harga</th>
+                <th>Lokasi</th>
+                <th>Supplier</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="partsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Graphs Content -->
+    <section id="graphsSection" class="content-section hidden">
+      <div class="card">
+        <div class="card-header">
+          <h3>Grafik Pemakaian Spare Parts</h3>
+          <div class="filter-bar">
+            <select id="graphPartFilter" onchange="loadGraphs()">
+              <option value="">Semua Spare Parts</option>
+            </select>
+            <select id="graphMachineFilter" onchange="loadGraphs()">
+              <option value="">Semua Mesin</option>
+            </select>
+            <select id="graphDaysFilter" onchange="loadGraphs()">
+              <option value="30">30 Hari</option>
+              <option value="90" selected>90 Hari</option>
+              <option value="180">6 Bulan</option>
+            </select>
+          </div>
+        </div>
+        <div class="graph-grid">
+          <div class="graph-card">
+            <h4>Pemakaian Harian</h4>
+            <canvas id="dailyUsageChart"></canvas>
+          </div>
+          <div class="graph-card">
+            <h4>Pemakaian per Kategori</h4>
+            <canvas id="categoryUsageChart"></canvas>
+          </div>
+          <div class="graph-card">
+            <h4>Top 10 Spare Parts Terpakai</h4>
+            <canvas id="topPartsChart"></canvas>
+          </div>
+          <div class="graph-card">
+            <h4>Pemakaian per Mesin</h4>
+            <canvas id="machineUsageChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Usage Log Content -->
+    <section id="usageSection" class="content-section hidden">
+      <div class="card">
+        <div class="card-header">
+          <h3>Log Pemakaian Spare Parts</h3>
+        </div>
+        <div class="filter-bar">
+          <input type="date" id="usageDateFrom">
+          <input type="date" id="usageDateTo">
+          <select id="usageMachineFilter" onchange="loadUsageLogs()">
+            <option value="">Semua Mesin</option>
+          </select>
+          <button class="btn-primary" onclick="loadUsageLogs()">Filter</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Mesin</th>
+                <th>Spare Part</th>
+                <th>Qty</th>
+                <th>Operator</th>
+                <th>Catatan</th>
+              </tr>
+            </thead>
+            <tbody id="usageTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Add Part Modal -->
+  <div id="addPartModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Tambah Spare Part</h3>
+        <button class="close-btn" onclick="closeAddPartModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Part Number</label>
+            <input type="text" id="partNumberInput" required>
+          </div>
+          <div class="form-group">
+            <label>Nama</label>
+            <input type="text" id="partNameInput" required>
+          </div>
+          <div class="form-group">
+            <label>Kategori</label>
+            <input type="text" id="partCategoryInput" required>
+          </div>
+          <div class="form-group">
+            <label>Stock</label>
+            <input type="number" id="partStockInput" min="0">
+          </div>
+          <div class="form-group">
+            <label>Min Stock</label>
+            <input type="number" id="partMinStockInput" min="0">
+          </div>
+          <div class="form-group">
+            <label>Unit</label>
+            <input type="text" id="partUnitInput" value="pcs">
+          </div>
+          <div class="form-group">
+            <label>Harga Satuan</label>
+            <input type="number" id="partPriceInput" min="0">
+          </div>
+          <div class="form-group">
+            <label>Lokasi</label>
+            <input type="text" id="partLocationInput">
+          </div>
+          <div class="form-group full-width">
+            <label>Supplier</label>
+            <input type="text" id="partSupplierInput">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeAddPartModal()">Batal</button>
+        <button class="btn-primary" onclick="savePart()">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
